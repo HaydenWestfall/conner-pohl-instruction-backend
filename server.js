@@ -31,10 +31,19 @@ app.use(helmet());
 app.use(morgan("tiny"));
 app.use(express.json());
 
-// CORS: allow only your frontend origin
+// CORS: allow multiple origins from env (comma-separated)
+const allowedOrigins = CORS_ORIGIN.split(",").map((s) => s.trim());
 app.use(
   cors({
-    origin: CORS_ORIGIN.split(",").map((s) => s.trim()), // support comma-separated origins if needed
+    origin: function (origin, callback) {
+      // allow requests with no origin (like curl, mobile apps, etc.)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
   })
 );
 
